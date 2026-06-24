@@ -1,35 +1,45 @@
-async function shortenURL(){
+async function shortenURL() {
 
     const url =
-    document.getElementById(
-        "urlInput"
-    ).value;
+    document.getElementById("urlInput").value;
 
     const response =
-    await fetch(
-        "/api/shorten",
-        {
-            method:"POST",
-            headers:{
-                "Content-Type":
-                "application/json"
-            },
-            body:JSON.stringify({
-                url:url
-            })
-        }
+    await fetch("/api/shorten", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            url: url
+        })
+    });
+
+    const data = await response.json();
+
+    const shortUrl =
+    window.location.origin +
+    data.short_url;
+
+    const container =
+    document.getElementById(
+        "linksContainer"
     );
 
-    const data =
-    await response.json();
+    container.innerHTML += `
+    <div class="link-card">
 
-    document
-    .getElementById(
-        "linksContainer"
-    )
-    .innerHTML += `
-    <p>
-    ${data.short_url}
-    </p>
+        <p>
+            <strong>Original URL:</strong>
+            ${url}
+        </p>
+
+        <p>
+            <strong>Short URL:</strong>
+            <a href="${shortUrl}" target="_blank">
+                ${shortUrl}
+            </a>
+        </p>
+
+    </div>
     `;
 }
