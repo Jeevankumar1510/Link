@@ -1,36 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>URL Shortener</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Shortener</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <div class="page-shell">
+        <header class="hero">
+            <div class="hero-copy">
+                <span class="hero-eyebrow">Fast & friendly</span>
+                <h1>Shorten links with confidence.</h1>
+                <p>Convert long URLs into compact, shareable links and keep your most recent results in one elegant dashboard.</p>
+            </div>
+            <div class="hero-card">
+                <p class="hero-card-title">Ready to shorten?</p>
+                <p>Submit any valid URL and instantly generate a clean short code for quick sharing.</p>
+            </div>
+        </header>
 
-    <h1>URL Shortener</h1>
+        <main class="content">
+            <section class="form-panel">
+                <form action="/shorten" method="post" class="url-form">
+                    <label for="urlInput">Paste your URL</label>
+                    <div class="input-row">
+                        <input id="urlInput" type="url" name="url" placeholder="https://example.com" required>
+                        <button type="submit">Shorten</button>
+                    </div>
+                </form>
+            </section>
 
-    <form action="/shorten" method="post">
-        <input
-            type="url"
-            name="url"
-            placeholder="Paste URL"
-            required>
+            <section class="links-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Recent Shortened Links</h2>
+                        <p>Latest links appear first so you can copy or open them immediately.</p>
+                    </div>
+                </div>
 
-        <button type="submit">
-            Shorten
-        </button>
-    </form>
-
-    <h2>Shortened URLs</h2>
-
-    {% for url in urls %}
-        <p>
-            <a href="/{{url.short_code}}" target="_blank">
-                {{url.short_code}}
-            </a>
-        </p>
-    {% endfor %}
-
-    <script src="/static/script.js"></script>
-
+                <div class="links-grid">
+                    {% for url in urls %}
+                        <article class="link-card">
+                            <div class="card-top">
+                                <span class="link-badge">Short code</span>
+                                <a class="link-short" href="/{{ url.short_code }}" target="_blank">/{{ url.short_code }}</a>
+                            </div>
+                            <p class="link-original">{{ url.original_url }}</p>
+                        </article>
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No shortened URLs yet. Paste a link above to get started.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+    </div>
 </body>
 </html>
