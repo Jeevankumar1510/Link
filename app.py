@@ -11,12 +11,10 @@ import random
 import string
 
 app = FastAPI()
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Templates
 templates = Jinja2Templates(directory="templates")
-
-# Static Files
 
 
 def generate_code():
@@ -27,25 +25,34 @@ def generate_code():
         )
     )
 
+
 @app.get("/")
 def home(request: Request):
 
     with engine.connect() as conn:
-        urls = conn.execute(
+        result = conn.execute(
             text("""
                 SELECT *
                 FROM urls
                 ORDER BY id DESC
             """)
-        ).fetchall()
+        )
+
+        urls = []
+
+        for row in result.mappings():
+
+            row = dict(row)
+
+            row["short_url"] = f"{request.base_url}{row['short_code']}"
+
+            urls.append(row)
 
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
-            "request": request,
-            "urls": urls,
-            "base_url": str(request.base_url)
+            "urls": urls
         }
     )
 
@@ -54,6 +61,7 @@ def home(request: Request):
 async def shorten(request: Request):
 
     form = await request.form()
+
     original_url = form.get("url")
 
     with engine.begin() as conn:
@@ -62,9 +70,11 @@ async def shorten(request: Request):
             text("""
                 SELECT short_code
                 FROM urls
-                WHERE original_url=:url
+                WHERE original_url = :url
             """),
-            {"url": original_url}
+            {
+                "url": original_url
+            }
         ).fetchone()
 
         if existing:
@@ -80,7 +90,7 @@ async def shorten(request: Request):
                     INSERT INTO urls
                     (original_url, short_code)
                     VALUES
-                    (:url,:code)
+                    (:url, :code)
                 """),
                 {
                     "url": original_url,
@@ -88,28 +98,34 @@ async def shorten(request: Request):
                 }
             )
 
-    return RedirectResponse("/", status_code=303)
+    return RedirectResponse(
+        url="/",
+        status_code=303
+    )
 
 
 @app.get("/{code}")
 def redirect_url(code: str):
 
     with engine.connect() as conn:
+
         result = conn.execute(
-            text(
-                """
+            text("""
                 SELECT original_url
                 FROM urls
                 WHERE short_code = :code
-                """
-            ),
+            """),
             {
                 "code": code
             }
         ).fetchone()
 
     if result:
-        return RedirectResponse(url=result[0])
+
+        return RedirectResponse(
+            url=result[0],
+            status_code=307
+        )
 
     return {
         "error": "URL not found"
